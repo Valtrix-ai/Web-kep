@@ -20,9 +20,20 @@
         input { width: 100%; padding: 18px 25px; background: rgba(0,0,0,0.5); border: 1px solid #333; border-radius: 15px; color: white; font-size: 1rem; text-align: center; margin-bottom: 15px; outline: none; }
         .btn-main { width: 100%; padding: 18px; background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); border: none; border-radius: 15px; color: white; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.3s; }
         #msg { margin-top: 20px; font-weight: 600; min-height: 20px; color: var(--neon-blue); }
-        .result-box { display: none; margin-top: 30px; animation: fadeIn 0.5s ease; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .btn-dl { padding: 15px; background: rgba(0,0,0,0.6); border: 1px solid var(--neon-purple); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; }
+        
+        /* Modifikasi UI Hasil (Ala Y2mate) */
+        .result-box { display: none; margin-top: 30px; animation: fadeIn 0.5s ease; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; border: 1px solid #333; }
+        .thumb-img { width: 100%; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .media-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; color: #fff; word-break: break-word; }
+        
+        .action-row { display: flex; gap: 10px; margin-top: 15px; }
+        select { flex: 1; padding: 15px; border-radius: 12px; background: #111; color: white; border: 1px solid var(--neon-blue); outline: none; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
+        .btn-get { padding: 0 25px; background: var(--neon-blue); color: #000; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; }
+        .btn-get:hover { background: #00d4ff; box-shadow: 0 0 15px var(--neon-blue); }
+        
+        .btn-dl-final { display: block; width: 100%; padding: 15px; margin-top: 15px; background: #28a745; color: white; font-weight: bold; text-decoration: none; border-radius: 12px; font-size: 1.1rem; transition: 0.3s; text-align: center; }
+        .btn-dl-final:hover { background: #218838; box-shadow: 0 0 15px #28a745; }
+
         #admin-tab { display: none; text-align: left; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(0,0,0,0.5); }
         th, td { border: 1px solid rgba(0, 243, 255, 0.3); padding: 12px; font-size: 0.8rem; }
@@ -35,22 +46,32 @@
         <div class="nav-logo">VALTRIX</div>
         <div class="nav-links"><span onclick="tampilUtama()">HOME</span><span onclick="cekAdmin()">ADMIN</span></div>
     </div>
+    
     <div class="container" id="main-tab">
         <h1>GALACTIC MEDIA</h1>
         <p style="color:var(--text-dim)">Premium Downloader: YouTube • TikTok • Twitter • xHamster</p>
         <div class="search-box">
-            <input type="text" id="url" placeholder="Tempel link di sini...">
+            <input type="text" id="url" placeholder="Tempel link luar angkasamu di sini...">
             <button class="btn-main" onclick="prosesLink()" id="btn-proses">EKSTRAK LINK</button>
             <div id="msg"></div>
         </div>
+        
         <div class="result-box" id="res">
-            <div id="rtitle" style="margin-bottom:20px; font-weight:bold;"></div>
-            <div style="text-align:left; color:var(--text-dim); font-size:0.8rem; margin-bottom:10px;">🎬 VIDEO MP4</div>
-            <div class="grid" id="v-box"></div>
-            <div style="text-align:left; color:var(--text-dim); font-size:0.8rem; margin:15px 0 10px;">🎵 AUDIO MP3</div>
-            <div class="grid" id="a-box"></div>
+            <img id="rthumb" class="thumb-img" src="" alt="Thumbnail" style="display:none;">
+            <div class="media-title" id="rtitle">Judul Video</div>
+            
+            <div class="action-row">
+                <select id="format-select">
+                    </select>
+                <button class="btn-get" id="btn-action" onclick="prosesGetLink()">Get Link</button>
+            </div>
+            
+            <div id="dl-container" style="display:none;">
+                <a href="#" id="final-dl-btn" class="btn-dl-final">📥 DOWNLOAD</a>
+            </div>
         </div>
     </div>
+    
     <div class="container" id="admin-tab">
         <h2 style="color:var(--neon-blue)">DASHBOARD ADMIN</h2>
         <button class="btn-main" style="width:auto; padding:10px 20px;" onclick="tampilUtama()">Kembali</button>
@@ -65,22 +86,60 @@
             const tbody = document.getElementById('log-table'); tbody.innerHTML = '';
             logs.forEach(log => { tbody.innerHTML += `<tr><td style="color:#bc13fe">${log.platform}</td><td style="word-break:break-all">${log.url}</td></tr>`; });
         }
+        
         async function prosesLink() {
             const url = document.getElementById('url').value;
             const msg = document.getElementById('msg'); const res = document.getElementById('res'); const btn = document.getElementById('btn-proses');
             if(!url) return;
             msg.textContent = "🚀 Menembus Server..."; btn.disabled = true; res.style.display = "none";
+            document.getElementById('dl-container').style.display = "none";
+            
             try {
                 const response = await fetch('/api/extract', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({url}) });
                 const data = await response.json();
+                
                 if(data.success) {
-                    msg.textContent = "✅ File ditemukan!"; document.getElementById('rtitle').textContent = data.title;
-                    const safeTitle = data.title.replace(/[^a-zA-Z0-9 ]/g, "");
-                    document.getElementById('v-box').innerHTML = data.videos.map(v => `<a href="/proxy_dl?url=${encodeURIComponent(v.url)}&title=${encodeURIComponent(safeTitle)}" class="btn-dl">${v.label}</a>`).join('');
-                    document.getElementById('a-box').innerHTML = data.audios.map(a => `<a href="/proxy_dl?url=${encodeURIComponent(a.url)}&title=${encodeURIComponent(safeTitle)}" class="btn-dl">${a.label}</a>`).join('');
+                    msg.textContent = "✅ Video ditemukan!"; 
+                    document.getElementById('rtitle').textContent = data.title;
+                    
+                    const thumb = document.getElementById('rthumb');
+                    if(data.thumbnail) { thumb.src = data.thumbnail; thumb.style.display = 'block'; }
+                    else { thumb.style.display = 'none'; }
+                    
+                    const sel = document.getElementById('format-select');
+                    sel.innerHTML = '';
+                    // Gabung Video & Audio di Dropdown
+                    data.videos.forEach(v => sel.innerHTML += `<option value="${v.url}">${v.label}</option>`);
+                    data.audios.forEach(a => sel.innerHTML += `<option value="${a.url}">${a.label}</option>`);
+                    
+                    document.getElementById('btn-action').textContent = "Get Link";
+                    document.getElementById('btn-action').disabled = false;
+                    
                     res.style.display = "block";
                 } else { msg.textContent = "❌ " + data.message; }
             } catch(e) { msg.textContent = "❌ Server Error"; } finally { btn.disabled = false; }
+        }
+
+        // FUNGSI ANIMASI Y2MATE & GENERATE LINK
+        function prosesGetLink() {
+            const btn = document.getElementById('btn-action');
+            const selUrl = document.getElementById('format-select').value;
+            if(!selUrl) return;
+
+            btn.textContent = "Converting...";
+            btn.disabled = true;
+
+            // Simulasi proses layaknya Y2mate (Jeda 1.5 detik)
+            setTimeout(() => {
+                const safeTitle = document.getElementById('rtitle').textContent.replace(/[^a-zA-Z0-9 ]/g, "");
+                const finalBtn = document.getElementById('final-dl-btn');
+                
+                // Masukkan link rahasia proxy kita ke tombol download hijau
+                finalBtn.href = `/proxy_dl?url=${encodeURIComponent(selUrl)}&title=${encodeURIComponent(safeTitle)}`;
+                
+                btn.textContent = "Done!";
+                document.getElementById('dl-container').style.display = "block";
+            }, 1500);
         }
     </script>
 </body>
