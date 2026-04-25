@@ -4,15 +4,12 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import yt_dlp
 
 app = Flask(__name__)
-# Pengaturan proxy agar kompatibel dengan Railway
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-# Route Otomatis: Jika buka link utama, langsung lempar ke /web
 @app.route('/')
 def index():
     return redirect(url_for('home'))
 
-# Halaman Utama yang kamu inginkan di /web
 @app.route('/web')
 def home():
     return render_template('index.html')
@@ -25,11 +22,17 @@ def get_download_links():
     if not url:
         return jsonify({'success': False, 'message': 'Link tidak boleh kosong!'})
 
+    # Konfigurasi Anti-Blokir (Menyamar sebagai Browser Asli)
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
         'skip_download': True,
         'format': 'best',
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
+        }
     }
 
     try:
@@ -42,26 +45,27 @@ def get_download_links():
                 if f.get('vcodec') != 'none' and f.get('ext') == 'mp4':
                     res = f.get('height')
                     if res and res >= 360:
-                        videos.append({'label': f"{res}p MP4", 'url': f.get('url')})
+                        videos.append({'label': f"MP4 {res}p", 'url': f.get('url')})
                 elif f.get('acodec') != 'none' and f.get('vcodec') == 'none':
                     bitrate = f.get('abr', 128)
-                    audios.append({'label': f"{int(bitrate)}kbps Audio", 'url': f.get('url')})
+                    audios.append({'label': f"MP3 {int(bitrate)}kbps", 'url': f.get('url')})
 
             videos = list({v['label']: v for v in videos}.values())
             audios = list({a['label']: a for a in audios}.values())
-            videos.sort(key=lambda x: int(x['label'].replace('p MP4', '')), reverse=True)
-            audios.sort(key=lambda x: int(x['label'].replace('kbps Audio', '')), reverse=True)
+            
+            # Pengurutan kualitas tertinggi ke terendah
+            videos.sort(key=lambda x: int(x['label'].replace('MP4 ', '').replace('p', '')), reverse=True)
+            audios.sort(key=lambda x: int(x['label'].replace('MP3 ', '').replace('kbps', '')), reverse=True)
 
             return jsonify({
                 'success': True,
                 'title': info.get('title', 'Media Berhasil Ditemukan'),
-                'videos': videos[:3],
-                'audios': audios[:3]
+                'videos': videos[:4],
+                'audios': audios[:4]
             })
     except Exception as e:
-        return jsonify({'success': False, 'message': 'Gagal mengekstrak video. Coba link lain.'})
+        return jsonify({'success': False, 'message': 'Gagal (Diblokir Server/Link Salah). Coba lagi.'})
 
 if __name__ == '__main__':
-    # Menggunakan port dari environment Railway
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
