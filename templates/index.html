@@ -6,218 +6,81 @@
     <title>Valtrix Galactic Hub</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Inter:wght@400;600&display=swap');
-
-        :root {
-            --bg: #050212;
-            --box: rgba(20, 15, 45, 0.6);
-            --neon-blue: #00f3ff;
-            --neon-purple: #bc13fe;
-            --text-main: #ffffff;
-            --text-dim: #a0a0b5;
-        }
-
+        :root { --bg: #050212; --box: rgba(20, 15, 45, 0.6); --neon-blue: #00f3ff; --neon-purple: #bc13fe; --text-main: #ffffff; --text-dim: #a0a0b5; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            margin: 0; padding: 0; min-height: 100vh;
-            background: var(--bg) radial-gradient(circle at 50% 30%, #150a30 0%, var(--bg) 80%);
-            color: var(--text-main); font-family: 'Inter', sans-serif;
-            overflow-x: hidden; display: flex; flex-direction: column; align-items: center;
-        }
-
-        /* Animasi Bintang Luar Angkasa */
-        .stars {
-            position: fixed; top: 0; left: 0; width: 200%; height: 200%; z-index: -1;
-            background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat top center;
-            animation: moveStars 150s linear infinite; opacity: 0.6;
-        }
+        body { margin: 0; padding: 0; min-height: 100vh; background: var(--bg) radial-gradient(circle at 50% 30%, #150a30 0%, var(--bg) 80%); color: var(--text-main); font-family: 'Inter', sans-serif; overflow-x: hidden; display: flex; flex-direction: column; align-items: center; }
+        .stars { position: fixed; top: 0; left: 0; width: 200%; height: 200%; z-index: -1; background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat top center; animation: moveStars 150s linear infinite; opacity: 0.6; }
         @keyframes moveStars { from { transform: translate(0, 0); } to { transform: translate(-50%, -50%); } }
-
-        /* Navbar & Menu */
-        .nav {
-            width: 100%; padding: 20px; display: flex; justify-content: space-between;
-            align-items: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0, 243, 255, 0.2);
-        }
+        .nav { width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0, 243, 255, 0.2); }
         .nav-logo { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
-        .nav-links span { cursor: pointer; color: var(--text-dim); font-size: 0.9rem; margin-left: 15px; font-weight: 600; transition: 0.3s; }
-        .nav-links span:hover { color: var(--neon-purple); text-shadow: 0 0 10px var(--neon-purple); }
-
-        /* Container Utama */
+        .nav-links span { cursor: pointer; color: var(--text-dim); font-size: 0.9rem; margin-left: 15px; font-weight: 600; }
         .container { width: 100%; max-width: 600px; padding: 40px 20px; text-align: center; }
-
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 2.8rem; margin-bottom: 10px; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(188, 19, 254, 0.4)); }
-        p { color: var(--text-dim); margin-bottom: 40px; font-size: 0.95rem; }
-
-        /* Kotak Pencarian */
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(188, 19, 254, 0.4)); }
         .search-box { background: var(--box); border: 1px solid rgba(0, 243, 255, 0.3); padding: 30px 20px; border-radius: 25px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.1); backdrop-filter: blur(15px); }
-        
-        input { width: 100%; padding: 18px 25px; background: rgba(0,0,0,0.5); border: 1px solid #333; border-radius: 15px; color: white; font-size: 1rem; text-align: center; margin-bottom: 15px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
-
-        .btn-main { width: 100%; padding: 18px; background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); border: none; border-radius: 15px; color: white; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
-        .btn-main:active { transform: scale(0.97); }
-        .btn-main:disabled { filter: grayscale(1); cursor: not-allowed; }
-
+        input { width: 100%; padding: 18px 25px; background: rgba(0,0,0,0.5); border: 1px solid #333; border-radius: 15px; color: white; font-size: 1rem; text-align: center; margin-bottom: 15px; outline: none; }
+        .btn-main { width: 100%; padding: 18px; background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); border: none; border-radius: 15px; color: white; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.3s; }
         #msg { margin-top: 20px; font-weight: 600; min-height: 20px; color: var(--neon-blue); }
-
-        /* Hasil Download */
         .result-box { display: none; margin-top: 30px; animation: fadeIn 0.5s ease; }
-        .media-title { font-size: 1.1rem; color: #fff; margin-bottom: 20px; word-break: break-word; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        
-        .btn-dl { padding: 15px; background: rgba(0,0,0,0.6); border: 1px solid var(--neon-purple); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: 0.3s; }
-        .btn-dl:hover { background: var(--neon-purple); box-shadow: 0 0 15px rgba(188, 19, 254, 0.5); }
-
-        /* Tab Admin (Disembunyikan) */
+        .btn-dl { padding: 15px; background: rgba(0,0,0,0.6); border: 1px solid var(--neon-purple); border-radius: 12px; color: white; text-decoration: none; font-weight: 600; font-size: 0.85rem; }
         #admin-tab { display: none; text-align: left; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(0,0,0,0.5); font-size: 0.85rem; }
-        th, td { border: 1px solid rgba(0, 243, 255, 0.3); padding: 12px; }
-        th { background: rgba(0, 243, 255, 0.1); color: var(--neon-blue); }
-        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(0,0,0,0.5); }
+        th, td { border: 1px solid rgba(0, 243, 255, 0.3); padding: 12px; font-size: 0.8rem; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-
     <div class="stars"></div>
-
     <div class="nav">
         <div class="nav-logo">VALTRIX</div>
-        <div class="nav-links">
-            <span onclick="tampilUtama()">HOME</span>
-            <span onclick="cekAdmin()">ADMIN</span>
-        </div>
+        <div class="nav-links"><span onclick="tampilUtama()">HOME</span><span onclick="cekAdmin()">ADMIN</span></div>
     </div>
-
     <div class="container" id="main-tab">
         <h1>GALACTIC MEDIA</h1>
-        <p>Premium Downloader: YouTube • TikTok • Twitter • xHamster</p>
-
+        <p style="color:var(--text-dim)">Premium Downloader: YouTube • TikTok • Twitter • xHamster</p>
         <div class="search-box">
-            <input type="text" id="url" placeholder="Tempel link luar angkasamu di sini...">
+            <input type="text" id="url" placeholder="Tempel link di sini...">
             <button class="btn-main" onclick="prosesLink()" id="btn-proses">EKSTRAK LINK</button>
             <div id="msg"></div>
         </div>
-
         <div class="result-box" id="res">
-            <div class="media-title" id="rtitle">Judul Video</div>
-            <div style="text-align: left; color: var(--text-dim); margin-bottom: 10px; font-size: 0.8rem;">🎬 VIDEO MP4</div>
+            <div id="rtitle" style="margin-bottom:20px; font-weight:bold;"></div>
+            <div style="text-align:left; color:var(--text-dim); font-size:0.8rem; margin-bottom:10px;">🎬 VIDEO MP4</div>
             <div class="grid" id="v-box"></div>
-            <div style="text-align: left; color: var(--text-dim); margin: 15px 0 10px; font-size: 0.8rem;">🎵 AUDIO MP3</div>
+            <div style="text-align:left; color:var(--text-dim); font-size:0.8rem; margin:15px 0 10px;">🎵 AUDIO MP3</div>
             <div class="grid" id="a-box"></div>
         </div>
     </div>
-
     <div class="container" id="admin-tab">
-        <h2 style="color: var(--neon-blue);">DASHBOARD ADMIN</h2>
-        <p>Log lalu lintas unduhan secara real-time.</p>
-        <button class="btn-main" style="width: auto; padding: 10px 20px;" onclick="tampilUtama()">Kembali</button>
-        <table>
-            <thead>
-                <tr>
-                    <th>Platform</th>
-                    <th>Link Source</th>
-                </tr>
-            </thead>
-            <tbody id="log-table"></tbody>
-        </table>
+        <h2 style="color:var(--neon-blue)">DASHBOARD ADMIN</h2>
+        <button class="btn-main" style="width:auto; padding:10px 20px;" onclick="tampilUtama()">Kembali</button>
+        <table><thead><tr><th>Platform</th><th>Link</th></tr></thead><tbody id="log-table"></tbody></table>
     </div>
 
     <script>
-        // Logika Admin (Login Cepat Tanpa Database)
-        function cekAdmin() {
-            const pass = prompt("Masukkan Password Admin:");
-            // Password adminnya adalah: admin123
-            if(pass === "admin123") {
-                document.getElementById('main-tab').style.display = 'none';
-                document.getElementById('admin-tab').style.display = 'block';
-                loadLogs();
-            } else if (pass) {
-                alert("Password Salah!");
-            }
+        function cekAdmin() { if(prompt("Password Admin:") === "admin123") { document.getElementById('main-tab').style.display='none'; document.getElementById('admin-tab').style.display='block'; loadLogs(); } }
+        function tampilUtama() { document.getElementById('admin-tab').style.display='none'; document.getElementById('main-tab').style.display='block'; }
+        async function loadLogs() { 
+            const res = await fetch('/api/logs'); const logs = await res.json();
+            const tbody = document.getElementById('log-table'); tbody.innerHTML = '';
+            logs.forEach(log => { tbody.innerHTML += `<tr><td style="color:#bc13fe">${log.platform}</td><td style="word-break:break-all">${log.url}</td></tr>`; });
         }
-
-        function tampilUtama() {
-            document.getElementById('admin-tab').style.display = 'none';
-            document.getElementById('main-tab').style.display = 'block';
-        }
-
-        async function loadLogs() {
-            const tbody = document.getElementById('log-table');
-            tbody.innerHTML = "<tr><td colspan='2' style='text-align:center;'>Memuat data...</td></tr>";
-            try {
-                const res = await fetch('/api/logs');
-                const logs = await res.json();
-                tbody.innerHTML = '';
-                if(logs.length === 0) {
-                    tbody.innerHTML = "<tr><td colspan='2' style='text-align:center;'>Belum ada aktivitas.</td></tr>";
-                } else {
-                    logs.forEach(log => {
-                        tbody.innerHTML += `<tr>
-                            <td style="color: #bc13fe; font-weight: bold;">${log.platform}</td>
-                            <td style="word-break: break-all; color: #a0a0b5;">${log.url}</td>
-                        </tr>`;
-                    });
-                }
-            } catch(e) {
-                tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color: red;'>Gagal memuat log.</td></tr>";
-            }
-        }
-
-        // Logika Downloader
         async function prosesLink() {
             const url = document.getElementById('url').value;
-            const msg = document.getElementById('msg');
-            const res = document.getElementById('res');
-            const btn = document.getElementById('btn-proses');
-
-            if(!url) { msg.textContent = "Isi linknya terlebih dahulu!"; return; }
-
-            msg.textContent = "🚀 Menembus server luar angkasa... (Tunggu sebentar)";
-            msg.style.color = "var(--neon-blue)";
-            res.style.display = "none";
-            btn.disabled = true;
-
+            const msg = document.getElementById('msg'); const res = document.getElementById('res'); const btn = document.getElementById('btn-proses');
+            if(!url) return;
+            msg.textContent = "🚀 Menembus Server..."; btn.disabled = true; res.style.display = "none";
             try {
-                const response = await fetch('/api/extract', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({url: url})
-                });
+                const response = await fetch('/api/extract', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({url}) });
                 const data = await response.json();
-
                 if(data.success) {
-                    msg.textContent = "✅ File ditemukan! Klik tombol di bawah untuk menyimpan.";
-                    msg.style.color = "#00ffaa";
-                    document.getElementById('rtitle').textContent = data.title;
-                    
-                    const safeTitle = data.title.replace(/[^a-zA-Z0-9 ]/g, "").substring(0, 30);
-
-                    // Render Tombol Video
-                    const vBox = document.getElementById('v-box');
-                    vBox.innerHTML = '';
-                    data.videos.forEach(v => {
-                        vBox.innerHTML += `<a href="/proxy_dl?url=${encodeURIComponent(v.url)}&title=${encodeURIComponent(safeTitle)}" class="btn-dl">${v.label}</a>`;
-                    });
-
-                    // Render Tombol Audio
-                    const aBox = document.getElementById('a-box');
-                    aBox.innerHTML = '';
-                    data.audios.forEach(a => {
-                        aBox.innerHTML += `<a href="/proxy_dl?url=${encodeURIComponent(a.url)}&title=${encodeURIComponent(safeTitle)}" class="btn-dl">${a.label}</a>`;
-                    });
-
+                    msg.textContent = "✅ File ditemukan!"; document.getElementById('rtitle').textContent = data.title;
+                    const safeTitle = data.title.replace(/[^a-zA-Z0-9 ]/g, "");
+                    document.getElementById('v-box').innerHTML = data.videos.map(v => `<a href="/proxy_dl?url=${encodeURIComponent(v.url)}&title=${encodeURIComponent(safeTitle)}" class="btn-dl">${v.label}</a>`).join('');
+                    document.getElementById('a-box').innerHTML = data.audios.map(a => `<a href="/proxy_dl?url=${encodeURIComponent(a.url)}&title=${encodeURIComponent(safeTitle)}" class="btn-dl">${a.label}</a>`).join('');
                     res.style.display = "block";
-                } else {
-                    msg.textContent = "❌ " + data.message;
-                    msg.style.color = "var(--neon-purple)";
-                }
-            } catch(e) {
-                msg.textContent = "❌ Terjadi kesalahan pada server galaksi.";
-                msg.style.color = "red";
-            } finally {
-                btn.disabled = false;
-            }
+                } else { msg.textContent = "❌ " + data.message; }
+            } catch(e) { msg.textContent = "❌ Server Error"; } finally { btn.disabled = false; }
         }
     </script>
 </body>
