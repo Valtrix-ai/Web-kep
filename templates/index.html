@@ -6,50 +6,67 @@
     <title>Valtrix Galactic Hub</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Inter:wght@400;600&display=swap');
-        :root { --bg: #050212; --box: rgba(20, 15, 45, 0.6); --neon-blue: #00f3ff; --neon-purple: #bc13fe; --text-main: #ffffff; --text-dim: #a0a0b5; }
+        :root { --bg: #050212; --box: rgba(20, 15, 45, 0.7); --neon-blue: #00f3ff; --neon-purple: #bc13fe; --text-main: #ffffff; --text-dim: #a0a0b5; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; min-height: 100vh; background: var(--bg) radial-gradient(circle at 50% 30%, #150a30 0%, var(--bg) 80%); color: var(--text-main); font-family: 'Inter', sans-serif; overflow-x: hidden; display: flex; flex-direction: column; align-items: center; }
         .stars { position: fixed; top: 0; left: 0; width: 200%; height: 200%; z-index: -1; background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat top center; animation: moveStars 150s linear infinite; opacity: 0.6; }
         @keyframes moveStars { from { transform: translate(0, 0); } to { transform: translate(-50%, -50%); } }
+        
         .nav { width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0, 243, 255, 0.2); }
-        .nav-logo { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); }
-        .nav-links span { cursor: pointer; color: var(--text-dim); font-size: 0.9rem; margin-left: 15px; font-weight: 600; }
-        .container { width: 100%; max-width: 600px; padding: 40px 20px; text-align: center; }
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; margin-bottom: 10px; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(188, 19, 254, 0.4)); }
-        .search-box { background: var(--box); border: 1px solid rgba(0, 243, 255, 0.3); padding: 30px 20px; border-radius: 25px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.1); backdrop-filter: blur(15px); }
-        input { width: 100%; padding: 18px 25px; background: rgba(0,0,0,0.5); border: 1px solid #333; border-radius: 15px; color: white; font-size: 1rem; text-align: center; margin-bottom: 15px; outline: none; }
-        .btn-main { width: 100%; padding: 18px; background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); border: none; border-radius: 15px; color: white; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.3s; }
-        #msg { margin-top: 20px; font-weight: 600; min-height: 20px; color: var(--neon-blue); }
+        .nav-logo { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); letter-spacing: 2px;}
+        .nav-links span { cursor: pointer; color: var(--text-dim); font-size: 0.9rem; margin-left: 20px; font-weight: 600; transition: 0.3s; }
+        .nav-links span:hover { color: var(--neon-purple); text-shadow: 0 0 10px var(--neon-purple); }
         
-        /* Modifikasi UI Hasil (Ala Y2mate) */
-        .result-box { display: none; margin-top: 30px; animation: fadeIn 0.5s ease; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; border: 1px solid #333; }
-        .thumb-img { width: 100%; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .media-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; color: #fff; word-break: break-word; }
+        .container { width: 100%; max-width: 600px; padding: 50px 20px; text-align: center; }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 2.8rem; margin-bottom: 10px; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(188, 19, 254, 0.4)); }
+        .desc { color: var(--text-dim); margin-bottom: 40px; font-size: 0.95rem; }
         
-        .action-row { display: flex; gap: 10px; margin-top: 15px; }
-        select { flex: 1; padding: 15px; border-radius: 12px; background: #111; color: white; border: 1px solid var(--neon-blue); outline: none; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
-        .btn-get { padding: 0 25px; background: var(--neon-blue); color: #000; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; }
-        .btn-get:hover { background: #00d4ff; box-shadow: 0 0 15px var(--neon-blue); }
+        .search-box { background: var(--box); border: 1px solid rgba(0, 243, 255, 0.3); padding: 35px 25px; border-radius: 25px; box-shadow: 0 0 40px rgba(0, 243, 255, 0.1); backdrop-filter: blur(15px); }
+        input { width: 100%; padding: 18px 25px; background: rgba(0,0,0,0.6); border: 1px solid #333; border-radius: 15px; color: white; font-size: 1rem; text-align: center; margin-bottom: 15px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
         
-        .btn-dl-final { display: block; width: 100%; padding: 15px; margin-top: 15px; background: #28a745; color: white; font-weight: bold; text-decoration: none; border-radius: 12px; font-size: 1.1rem; transition: 0.3s; text-align: center; }
-        .btn-dl-final:hover { background: #218838; box-shadow: 0 0 15px #28a745; }
+        .btn-main { width: 100%; padding: 18px; background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple)); border: none; border-radius: 15px; color: white; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
+        .btn-main:active { transform: scale(0.97); }
+        #msg { margin-top: 20px; font-weight: 600; min-height: 20px; color: var(--neon-blue); font-size: 0.9rem;}
+        
+        /* Box Hasil ala Y2mate - Modernized */
+        .result-box { display: none; margin-top: 30px; animation: fadeIn 0.5s ease; background: rgba(10, 5, 30, 0.8); padding: 25px; border-radius: 20px; border: 1px solid rgba(188, 19, 254, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .thumb-img { width: 100%; max-height: 250px; object-fit: cover; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.6); border: 1px solid #333; }
+        .media-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 20px; color: #fff; word-break: break-word; line-height: 1.4; }
+        
+        .action-row { display: flex; flex-direction: column; gap: 15px; }
+        @media (min-width: 480px) { .action-row { flex-direction: row; } }
+        
+        select { flex: 1; padding: 15px; border-radius: 12px; background: rgba(0,0,0,0.8); color: white; border: 1px solid var(--neon-blue); outline: none; font-family: 'Inter', sans-serif; font-size: 0.95rem; cursor: pointer;}
+        .btn-get { padding: 15px 30px; background: var(--neon-blue); color: #000; font-weight: 800; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; font-family: 'Inter', sans-serif;}
+        .btn-get:hover { background: #00d4ff; box-shadow: 0 0 20px var(--neon-blue); }
+        .btn-get:disabled { background: #555; color: #aaa; cursor: not-allowed; box-shadow: none; }
+        
+        .btn-dl-final { display: block; width: 100%; padding: 18px; margin-top: 20px; background: linear-gradient(45deg, #00b09b, #96c93d); color: white; font-weight: 800; text-decoration: none; border-radius: 12px; font-size: 1.1rem; transition: 0.3s; text-align: center; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(150, 201, 61, 0.4);}
+        .btn-dl-final:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(150, 201, 61, 0.6); }
 
         #admin-tab { display: none; text-align: left; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(0,0,0,0.5); }
-        th, td { border: 1px solid rgba(0, 243, 255, 0.3); padding: 12px; font-size: 0.8rem; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(0,0,0,0.6); border-radius: 10px; overflow: hidden;}
+        th, td { border: 1px solid rgba(0, 243, 255, 0.2); padding: 15px; font-size: 0.85rem; }
+        th { background: rgba(0, 243, 255, 0.1); color: var(--neon-blue); text-transform: uppercase; font-weight: 800;}
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
     <div class="stars"></div>
     <div class="nav">
         <div class="nav-logo">VALTRIX</div>
-        <div class="nav-links"><span onclick="tampilUtama()">HOME</span><span onclick="cekAdmin()">ADMIN</span></div>
+        <div class="nav-links">
+            <span onclick="tampilUtama()">HOME</span>
+            <span onclick="cekAdmin()">ADMIN</span>
+        </div>
     </div>
     
     <div class="container" id="main-tab">
         <h1>GALACTIC MEDIA</h1>
-        <p style="color:var(--text-dim)">Premium Downloader: YouTube • TikTok • Twitter • xHamster</p>
+        <p class="desc">Premium Downloader: YouTube • TikTok • Twitter • xHamster</p>
+        
         <div class="search-box">
             <input type="text" id="url" placeholder="Tempel link luar angkasamu di sini...">
             <button class="btn-main" onclick="prosesLink()" id="btn-proses">EKSTRAK LINK</button>
@@ -61,54 +78,60 @@
             <div class="media-title" id="rtitle">Judul Video</div>
             
             <div class="action-row">
-                <select id="format-select">
-                    </select>
+                <select id="format-select"></select>
                 <button class="btn-get" id="btn-action" onclick="prosesGetLink()">Get Link</button>
             </div>
             
             <div id="dl-container" style="display:none;">
-                <a href="#" id="final-dl-btn" class="btn-dl-final">📥 DOWNLOAD</a>
+                <a href="#" id="final-dl-btn" class="btn-dl-final">📥 DOWNLOAD SEKARANG</a>
             </div>
         </div>
     </div>
     
     <div class="container" id="admin-tab">
-        <h2 style="color:var(--neon-blue)">DASHBOARD ADMIN</h2>
-        <button class="btn-main" style="width:auto; padding:10px 20px;" onclick="tampilUtama()">Kembali</button>
-        <table><thead><tr><th>Platform</th><th>Link</th></tr></thead><tbody id="log-table"></tbody></table>
+        <h2 style="color:var(--neon-blue); margin-top:0;">DASHBOARD ADMIN</h2>
+        <button class="btn-main" style="width:auto; padding:10px 25px; border-radius: 10px;" onclick="tampilUtama()">Kembali</button>
+        <table>
+            <thead><tr><th>Platform</th><th>Link Media</th></tr></thead>
+            <tbody id="log-table"></tbody>
+        </table>
     </div>
 
     <script>
-        function cekAdmin() { if(prompt("Password Admin:") === "admin123") { document.getElementById('main-tab').style.display='none'; document.getElementById('admin-tab').style.display='block'; loadLogs(); } }
+        function cekAdmin() { if(prompt("Password Admin (Ketik: admin123):") === "admin123") { document.getElementById('main-tab').style.display='none'; document.getElementById('admin-tab').style.display='block'; loadLogs(); } else { alert('Akses Ditolak');} }
         function tampilUtama() { document.getElementById('admin-tab').style.display='none'; document.getElementById('main-tab').style.display='block'; }
+        
         async function loadLogs() { 
-            const res = await fetch('/api/logs'); const logs = await res.json();
-            const tbody = document.getElementById('log-table'); tbody.innerHTML = '';
-            logs.forEach(log => { tbody.innerHTML += `<tr><td style="color:#bc13fe">${log.platform}</td><td style="word-break:break-all">${log.url}</td></tr>`; });
+            const tbody = document.getElementById('log-table'); tbody.innerHTML = "<tr><td colspan='2' style='text-align:center;'>Memuat...</td></tr>";
+            try {
+                const res = await fetch('/api/logs'); const logs = await res.json(); tbody.innerHTML = '';
+                if(logs.length === 0) tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:gray;'>Belum ada data.</td></tr>";
+                logs.forEach(log => { tbody.innerHTML += `<tr><td style="color:var(--neon-purple); font-weight:bold;">${log.platform}</td><td style="word-break:break-all; color:var(--text-dim);">${log.url}</td></tr>`; });
+            } catch(e) { tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Gagal memuat log.</td></tr>"; }
         }
         
         async function prosesLink() {
             const url = document.getElementById('url').value;
             const msg = document.getElementById('msg'); const res = document.getElementById('res'); const btn = document.getElementById('btn-proses');
-            if(!url) return;
-            msg.textContent = "🚀 Menembus Server..."; btn.disabled = true; res.style.display = "none";
-            document.getElementById('dl-container').style.display = "none";
+            
+            if(!url) { msg.textContent = "Kolom link tidak boleh kosong!"; msg.style.color = "red"; return; }
+            
+            msg.textContent = "🚀 Menembus Server Keamanan... (Mohon Tunggu)"; msg.style.color = "var(--neon-blue)";
+            btn.disabled = true; res.style.display = "none"; document.getElementById('dl-container').style.display = "none";
             
             try {
                 const response = await fetch('/api/extract', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({url}) });
                 const data = await response.json();
                 
                 if(data.success) {
-                    msg.textContent = "✅ Video ditemukan!"; 
+                    msg.textContent = "✅ Media Berhasil Diekstrak!"; msg.style.color = "#00ffaa";
                     document.getElementById('rtitle').textContent = data.title;
                     
                     const thumb = document.getElementById('rthumb');
                     if(data.thumbnail) { thumb.src = data.thumbnail; thumb.style.display = 'block'; }
                     else { thumb.style.display = 'none'; }
                     
-                    const sel = document.getElementById('format-select');
-                    sel.innerHTML = '';
-                    // Gabung Video & Audio di Dropdown
+                    const sel = document.getElementById('format-select'); sel.innerHTML = '';
                     data.videos.forEach(v => sel.innerHTML += `<option value="${v.url}">${v.label}</option>`);
                     data.audios.forEach(a => sel.innerHTML += `<option value="${a.url}">${a.label}</option>`);
                     
@@ -116,11 +139,16 @@
                     document.getElementById('btn-action').disabled = false;
                     
                     res.style.display = "block";
-                } else { msg.textContent = "❌ " + data.message; }
-            } catch(e) { msg.textContent = "❌ Server Error"; } finally { btn.disabled = false; }
+                } else { 
+                    msg.textContent = "❌ " + data.message; msg.style.color = "var(--neon-purple)"; 
+                }
+            } catch(e) { 
+                msg.textContent = "❌ Kesalahan Koneksi Server."; msg.style.color = "red";
+            } finally { 
+                btn.disabled = false; 
+            }
         }
 
-        // FUNGSI ANIMASI Y2MATE & GENERATE LINK
         function prosesGetLink() {
             const btn = document.getElementById('btn-action');
             const selUrl = document.getElementById('format-select').value;
@@ -129,12 +157,10 @@
             btn.textContent = "Converting...";
             btn.disabled = true;
 
-            // Simulasi proses layaknya Y2mate (Jeda 1.5 detik)
             setTimeout(() => {
-                const safeTitle = document.getElementById('rtitle').textContent.replace(/[^a-zA-Z0-9 ]/g, "");
+                const safeTitle = document.getElementById('rtitle').textContent.replace(/[^a-zA-Z0-9 ]/g, "").substring(0, 40);
                 const finalBtn = document.getElementById('final-dl-btn');
                 
-                // Masukkan link rahasia proxy kita ke tombol download hijau
                 finalBtn.href = `/proxy_dl?url=${encodeURIComponent(selUrl)}&title=${encodeURIComponent(safeTitle)}`;
                 
                 btn.textContent = "Done!";
