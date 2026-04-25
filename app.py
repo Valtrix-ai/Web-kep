@@ -1,105 +1,111 @@
-import os
-import requests
+import os, requests, yt_dlp
 from flask import Flask, render_template, request, jsonify, redirect, url_for, Response, stream_with_context
-from werkzeug.middleware.proxy_fix import ProxyFix
-import yt_dlp
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+app.config['SECRET_KEY'] = 'valtrix-secret-space'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///valtrix.db'
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
+# --- DATABASE MODELS ---
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+
+class DownloadLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    platform = db.Column(db.String(50))
+    url = db.Column(db.String(500))
+    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+with app.app_context():
+    db.create_all()
+    # Buat admin default jika belum ada
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', password=generate_password_hash('admin123', method='pbkdf2:sha256'), is_admin=True)
+        db.add(admin)
+        db.commit()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# --- ROUTES ---
 @app.route('/')
-def index():
-    return redirect(url_for('home'))
+def root(): return redirect('/web')
 
 @app.route('/web')
-def home():
-    return render_template('index.html')
+def home(): return render_template('index.html')
 
-# Fitur Proxy Download: Memaksa file agar terunduh ke perangkat
-@app.route('/api/proxy_download')
-def proxy_download():
-    file_url = request.args.get('url')
-    file_name = request.args.get('name', 'Valtrix_Media.mp4')
-    
-    if not file_url:
-        return "URL tidak ditemukan", 400
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user = User.query.filter_by(username=request.form['username']).first()
+        if user and check_password_hash(user.password, request.form['password']):
+            login_user(user)
+            return redirect('/web')
+    return render_template('login.html')
 
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    }
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        hash_pw = generate_password_hash(request.form['password'], method='pbkdf2:sha256')
+        new_user = User(username=request.form['username'], password=hash_pw)
+        db.add(new_user); db.commit()
+        return redirect('/login')
+    return render_template('register.html')
 
-    req = requests.get(file_url, headers=headers, stream=True)
-    
-    # Menambahkan header agar browser melakukan "Save As"
-    response_headers = {
-        'Content-Disposition': f'attachment; filename="{file_name}"',
-        'Content-Type': req.headers.get('Content-Type')
-    }
+@app.route('/logout')
+def logout(): logout_user(); return redirect('/web')
 
-    return Response(
-        stream_with_context(req.iter_content(chunk_size=1024)),
-        headers=response_headers
-    )
+@app.route('/admin')
+@login_required
+def admin():
+    if not current_user.is_admin: return "Akses Ditolak", 403
+    logs = DownloadLog.query.order_by(DownloadLog.timestamp.desc()).all()
+    return render_template('admin.html', logs=logs)
 
+# --- DOWNLOADER ENGINE ---
 @app.route('/api/extract', methods=['POST'])
-def extract_link():
-    data = request.get_json()
-    url = data.get('url')
+def extract():
+    url = request.json.get('url')
+    platform = "Unknown"
+    if "youtube" in url: platform = "YouTube"
+    elif "tiktok" in url: platform = "TikTok"
+    elif "twitter" in url or "x.com" in url: platform = "Twitter"
+    elif "xhamster" in url: platform = "xHamster"
 
-    if not url:
-        return jsonify({'success': False, 'message': 'Link kosong!'})
+    # Simpan ke Log Admin
+    new_log = DownloadLog(platform=platform, url=url)
+    db.add(new_log); db.commit()
 
     ydl_opts = {
-        'quiet': True,
-        'no_warnings': True,
-        'format': 'best',
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Referer': 'https://www.google.com/',
-        }
+        'quiet': True, 'no_warnings': True,
+        'http_headers': {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
     }
-
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            videos = []
-            audios = []
-            
-            title = info.get('title', 'Valtrix_Download')
-            safe_title = "".join([c for c in title if c.isalnum() or c in (' ', '.', '_')]).rstrip()
-
+            v, a = [], []
             for f in info.get('formats', []):
-                # Video MP4 (720p - 1080p)
-                if f.get('vcodec') != 'none' and f.get('ext') == 'mp4':
-                    h = f.get('height')
-                    if h and h >= 360:
-                        videos.append({
-                            'label': f"{h}p HD",
-                            'url': f.get('url'),
-                            'name': f"{safe_title}_{h}p.mp4"
-                        })
-                # Audio MP3
-                elif f.get('acodec') != 'none' and f.get('vcodec') == 'none':
-                    abr = f.get('abr', 128)
-                    audios.append({
-                        'label': f"{int(abr)}kbps MP3",
-                        'url': f.get('url'),
-                        'name': f"{safe_title}.mp3"
-                    })
+                if f.get('vcodec') != 'none' and f.get('ext') == 'mp4' and f.get('height'):
+                    v.append({'l': f"{f['height']}p", 'u': f['url']})
+                if f.get('acodec') != 'none' and f.get('vcodec') == 'none':
+                    a.append({'l': f"{int(f.get('abr',128))}k", 'u': f['url']})
+            return jsonify({'success': True, 'title': info.get('title','Video'), 'v': v[:3], 'a': a[:3]})
+    except: return jsonify({'success': False, 'msg': 'Gagal mengekstrak link.'})
 
-            # Menghilangkan duplikat dan sorting
-            videos = list({v['label']: v for v in videos}.values())
-            audios = list({a['label']: a for a in audios}.values())
-            videos.sort(key=lambda x: int(x['label'].split('p')[0]), reverse=True)
-
-            return jsonify({
-                'success': True,
-                'title': title,
-                'videos': videos[:4],
-                'audios': audios[:4]
-            })
-    except Exception as e:
-        return jsonify({'success': False, 'message': 'Gagal akses server video. Coba lagi.'})
+@app.route('/proxy')
+def proxy():
+    url = request.args.get('url')
+    req = requests.get(url, stream=True)
+    return Response(stream_with_context(req.iter_content(1024)), content_type=req.headers['Content-Type'])
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
