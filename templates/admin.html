@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <style>
+        body { background: #050505; color: white; font-family: sans-serif; padding: 40px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #333; padding: 12px; text-align: left; }
+        th { background: #111; color: #00d4ff; }
+    </style>
+</head>
+<body>
+    <h1>LOG DOWNLOAD USER</h1>
+    <a href="/web" style="color: #00d4ff;">Kembali ke Web</a>
+    <br><br>
+    <table>
+        <tr>
+            <th>Platform</th>
+            <th>URL</th>
+            <th>Waktu</th>
+        </tr>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.platform }}</td>
+            <td style="font-size: 10px;">{{ log.url }}</td>
+            <td>{{ log.timestamp }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
+
