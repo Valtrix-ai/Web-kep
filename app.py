@@ -1,166 +1,191 @@
-import os
-import requests
-import yt_dlp
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context, redirect
-from werkzeug.middleware.proxy_fix import ProxyFix
+==============================
 
-app = Flask(__name__)
-# Pengaturan proxy agar kompatibel dengan lingkungan Railway
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+ULTRA BACKEND - FLASK VIDEO PLATFORM (ANTI-ABUSE + PRO)
 
-# Memori sederhana untuk Dashboard Admin dan Caching
-admin_logs = []
-header_cache = {}
+==============================
 
-@app.route('/')
-@app.route('/web')
-def home():
-    """Menampilkan halaman utama UI Galactic."""
-    return render_template('index.html')
+from flask import Flask, request, jsonify, send_from_directory from flask_sqlalchemy import SQLAlchemy from flask_cors import CORS from werkzeug.utils import secure_filename from werkzeug.security import generate_password_hash, check_password_hash from functools import wraps import jwt, datetime, os, time
 
-@app.route('/api/extract', methods=['POST'])
-def extract_link():
-    """Mengekstrak informasi video dan link unduhan menggunakan yt-dlp."""
-    data = request.get_json()
-    url = data.get('url')
-    
-    if not url: 
-        return jsonify({'success': False, 'message': 'Link tidak boleh kosong!'})
+app = Flask(name) CORS(app)
 
-    # Mencatat aktivitas untuk Admin
-    platform = "Lainnya"
-    if "youtube" in url or "youtu.be" in url: platform = "YouTube"
-    elif "tiktok" in url: platform = "TikTok"
-    elif "twitter" in url or "x.com" in url: platform = "Twitter"
-    elif "xhamster" in url: platform = "xHamster"
-    
-    admin_logs.insert(0, {'platform': platform, 'url': url})
+==============================
 
-    # Pengaturan yt-dlp yang dioptimalkan
-    ydl_opts = {
-        'quiet': True, 
-        'no_warnings': True,
-        'nocheckcertificate': True, 
-        'ignoreerrors': True, 
-        'geo_bypass': True,
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-        }
-    }
+CONFIG
 
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            
-            if not info: 
-                return jsonify({'success': False, 'message': 'Video tidak tersedia atau diproteksi oleh platform.'})
-            
-            videos = []
-            audios = []
-            
-            # Penanganan untuk Playlist (ambil item pertama)
-            if 'entries' in info: 
-                info = info['entries'][0]
-            
-            formats = info.get('formats', [])
-            if not formats and info.get('url'): 
-                formats = [info]
+==============================
 
-            for f in formats:
-                target_url = f.get('url', '')
-                protocol = f.get('protocol', '')
-                ext = f.get('ext', '')
-                
-                # Mengabaikan format m3u8/dash yang sering bermasalah saat diunduh langsung
-                if 'm3u8' in protocol or 'dash' in protocol or target_url.endswith('.m3u8'): 
-                    continue
-                
-                # Menyimpan header spesifik platform untuk digunakan saat mengunduh
-                header_cache[target_url] = f.get('http_headers', ydl_opts['http_headers'])
-                
-                # Memfilter format Video MP4
-                if ext == 'mp4' and f.get('vcodec') != 'none':
-                    h = f.get('height')
-                    size = f.get('filesize', 0) or f.get('filesize_approx', 0)
-                    mb = f"{round(size / 1048576, 1)} MB" if size else "Auto"
-                    
-                    if h and h >= 360: 
-                        videos.append({'label': f"{h}p (.mp4)", 'size': mb, 'url': target_url})
-                
-                # Memfilter format Audio MP3/M4A
-                if f.get('acodec') != 'none' and f.get('vcodec') == 'none':
-                    size = f.get('filesize', 0) or f.get('filesize_approx', 0)
-                    mb = f"{round(size / 1048576, 1)} MB" if size else "Auto"
-                    audios.append({'label': "Audio (.mp3)", 'size': mb, 'url': target_url})
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///videos.db' app.config['UPLOAD_FOLDER'] = 'uploads' app.config['SECRET_KEY'] = 'ULTRA_SECRET_KEY'
 
-            # Fallback jika filter di atas tidak menangkap apa pun
-            if not videos and info.get('url'):
-                videos.append({'label': "HD Video", 'size': 'Auto', 'url': info.get('url')})
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-            # Menghapus duplikat dan mengurutkan berdasarkan resolusi tertinggi
-            videos = list({v['label']: v for v in videos}.values())
-            audios = list({a['label']: a for a in audios}.values())
-            videos.sort(key=lambda x: int(x['label'].split('p')[0]) if 'p' in x['label'] else 0, reverse=True)
+db = SQLAlchemy(app)
 
-            return jsonify({
-                'success': True,
-                'title': info.get('title', 'Valtrix_Media'),
-                'thumbnail': info.get('thumbnail', ''),
-                'duration': info.get('duration_string', '00:00'),
-                'videos': videos[:5], # Batasi 5 opsi video
-                'audios': audios[:2]  # Batasi 2 opsi audio
-            })
-            
-    except Exception as e:
-        return jsonify({'success': False, 'message': 'Terjadi kesalahan saat memproses link. Silakan coba lagi.'})
+==============================
 
-@app.route('/proxy_dl')
-def proxy_dl():
-    """Merutekan unduhan agar file langsung tersimpan ke perangkat pengguna."""
-    target_url = request.args.get('url')
-    title = request.args.get('title', 'Valtrix_Media')
-    
-    # Mengambil header yang tersimpan saat proses ekstraksi
-    req_headers = header_cache.get(target_url, {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    })
-    
-    # Menambahkan Referer khusus untuk platform tertentu
-    if 'tiktok' in target_url: req_headers['Referer'] = 'https://www.tiktok.com/'
-    elif 'twimg' in target_url: req_headers['Referer'] = 'https://twitter.com/'
-    elif 'googlevideo' in target_url: req_headers['Referer'] = 'https://www.youtube.com/'
-        
-    try:
-        # Meminta data dari server asli
-        req = requests.get(target_url, headers=req_headers, stream=True, verify=False, timeout=10)
-        
-        # Jika akses ditolak (403/401) atau malah mengembalikan HTML, redirect ke link aslinya
-        if req.status_code in [403, 401, 404] or 'text/html' in req.headers.get('Content-Type', ''):
-            return redirect(target_url)
+MODELS
 
-        content_type = req.headers.get('Content-Type', 'application/octet-stream')
-        ext = 'mp3' if 'audio' in content_type else 'mp4'
-        
-        response_headers = {
-            'Content-Disposition': f'attachment; filename="{title}.{ext}"',
-            'Content-Type': content_type
-        }
-        
-        # Mengalirkan file ke pengguna
-        return Response(stream_with_context(req.iter_content(chunk_size=1024*1024)), headers=response_headers)
-        
-    except requests.exceptions.RequestException:
-        # Jika terjadi timeout atau error koneksi, arahkan langsung ke link aslinya
-        return redirect(target_url)
+==============================
 
-@app.route('/api/logs')
-def get_logs():
-    """Mengembalikan data log untuk Dashboard Admin."""
-    return jsonify(admin_logs)
+class User(db.Model): id = db.Column(db.Integer, primary_key=True) username = db.Column(db.String(80), unique=True) password = db.Column(db.String(200)) role = db.Column(db.String(20), default="user")
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
+class Video(db.Model): id = db.Column(db.Integer, primary_key=True) title = db.Column(db.String(200)) filename = db.Column(db.String(200)) views = db.Column(db.Integer, default=0)
+
+class Like(db.Model): id = db.Column(db.Integer, primary_key=True) user_id = db.Column(db.Integer) video_id = db.Column(db.Integer)
+
+class Comment(db.Model): id = db.Column(db.Integer, primary_key=True) video_id = db.Column(db.Integer) user_id = db.Column(db.Integer) text = db.Column(db.String(500))
+
+==============================
+
+INIT
+
+==============================
+
+@app.before_first_request def init(): db.create_all()
+
+==============================
+
+TOKEN
+
+==============================
+
+def create_token(user_id): return jwt.encode({ 'user_id': user_id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24) }, app.config['SECRET_KEY'], algorithm="HS256")
+
+==============================
+
+AUTH
+
+==============================
+
+def token_required(f): @wraps(f) def wrapper(*args, **kwargs): token = request.headers.get('Authorization') if not token: return jsonify({'msg': 'Token missing'}), 401 try: data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"]) request.user_id = data['user_id'] except: return jsonify({'msg': 'Invalid token'}), 401 return f(*args, **kwargs) return wrapper
+
+==============================
+
+SIMPLE RATE LIMIT (IP BASED)
+
+==============================
+
+rate_limit_store = {}
+
+def rate_limit(seconds=2): def decorator(f): @wraps(f) def wrapper(*args, **kwargs): ip = request.remote_addr now = time.time()
+
+if ip in rate_limit_store:
+            if now - rate_limit_store[ip] < seconds:
+                return jsonify({"msg": "Too many requests"}), 429
+
+        rate_limit_store[ip] = now
+        return f(*args, **kwargs)
+    return wrapper
+return decorator
+
+==============================
+
+AUTH ROUTES
+
+==============================
+
+@app.route('/register', methods=['POST']) @rate_limit(3) def register(): data = request.json user = User(username=data['username'], password=generate_password_hash(data['password'])) db.session.add(user) db.session.commit() return jsonify({"msg": "registered"})
+
+@app.route('/login', methods=['POST']) @rate_limit(3) def login(): data = request.json user = User.query.filter_by(username=data['username']).first() if user and check_password_hash(user.password, data['password']): return jsonify({"token": create_token(user.id)}) return jsonify({"msg": "failed"}), 401
+
+==============================
+
+UPLOAD
+
+==============================
+
+@app.route('/upload', methods=['POST']) @token_required @rate_limit(2) def upload(): file = request.files['file'] title = request.form['title']
+
+filename = secure_filename(file.filename)
+file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+video = Video(title=title, filename=filename)
+db.session.add(video)
+db.session.commit()
+
+return jsonify({"msg": "uploaded"})
+
+==============================
+
+VIDEOS (TRENDING)
+
+==============================
+
+@app.route('/videos', methods=['GET']) def videos(): vids = Video.query.order_by(Video.views.desc()).all() return jsonify([ {"id": v.id, "title": v.title, "url": f"/video/{v.filename}", "views": v.views} for v in vids ])
+
+==============================
+
+VIEW (ANTI SPAM SIMPLE)
+
+==============================
+
+view_cache = {}
+
+@app.route('/view/int:video_id', methods=['POST']) @rate_limit(1) def view(video_id): ip = request.remote_addr key = f"{ip}_{video_id}"
+
+if key in view_cache:
+    return jsonify({"msg": "already counted"})
+
+video = Video.query.get(video_id)
+if video:
+    video.views += 1
+    db.session.commit()
+    view_cache[key] = True
+    return jsonify({"msg": "view added"})
+
+return jsonify({"msg": "not found"}), 404
+
+==============================
+
+LIKE (1 USER 1 LIKE)
+
+==============================
+
+@app.route('/like/int:video_id', methods=['POST']) @token_required @rate_limit(1) def like(video_id): exists = Like.query.filter_by(user_id=request.user_id, video_id=video_id).first() if exists: return jsonify({"msg": "already liked"})
+
+like = Like(user_id=request.user_id, video_id=video_id)
+db.session.add(like)
+db.session.commit()
+
+return jsonify({"msg": "liked"})
+
+==============================
+
+COMMENTS (ANTI SPAM)
+
+==============================
+
+@app.route('/comment/int:video_id', methods=['POST']) @token_required @rate_limit(2) def comment(video_id): text = request.json['text'] c = Comment(video_id=video_id, user_id=request.user_id, text=text) db.session.add(c) db.session.commit() return jsonify({"msg": "comment added"})
+
+@app.route('/comments/int:video_id', methods=['GET']) def get_comments(video_id): comments = Comment.query.filter_by(video_id=video_id).all() return jsonify([ {"user_id": c.user_id, "text": c.text} for c in comments ])
+
+==============================
+
+ADMIN DELETE VIDEO
+
+==============================
+
+@app.route('/admin/delete/int:video_id', methods=['DELETE']) @token_required def delete_video(video_id): user = User.query.get(request.user_id) if user.role != "admin": return jsonify({"msg": "forbidden"}), 403
+
+video = Video.query.get(video_id)
+if video:
+    db.session.delete(video)
+    db.session.commit()
+    return jsonify({"msg": "deleted"})
+
+return jsonify({"msg": "not found"}), 404
+
+==============================
+
+STREAM
+
+==============================
+
+@app.route('/video/<filename>') def stream(filename): return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+==============================
+
+RUN
+
+==============================
+
+if name == 'main': app.run(debug=True)
