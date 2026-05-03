@@ -18,7 +18,7 @@ python app.py
 Lalu buka `http://127.0.0.1:5000`.
 
 ## Catatan
-+Tool ini ditujukan untuk code protection dan distribusi release. Tidak ada sistem yang 100% anti-deobfuscation.
+Tool ini ditujukan untuk code protection dan distribusi release. Tidak ada sistem yang 100% anti-deobfuscation.
  
 EOF
 )
